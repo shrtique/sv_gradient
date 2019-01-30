@@ -17,7 +17,8 @@ module processing_Gx_Gy #(
   input  logic                  i_data_valid,
   input  logic                  i_start_of_frame,
 
-  output logic [DATA_WIDTH-1:0] i_pixel,
+  output logic [DATA_WIDTH+4:0] o_Gx,
+  output logic [DATA_WIDTH+4:0] o_Gy,
   output logic                  o_data_valid,
   output logic                  o_start_of_frame	
 
@@ -44,10 +45,10 @@ always_ff @( posedge i_clk, negedge i_aresetn ) begin
   if ( ~i_aresetn ) begin
     Gx_col <= '{default: 'b0};
   end else begin
-    Gx_col[0] <= - ( ( i_image_kernel_buffer[4][4] + i_image_kernel_buffer[3][4] + i_image_kernel_buffer[2][4] + i_image_kernel_buffer[1][4] + i_image_kernel_buffer[0][4] ) << 1 );
-    Gx_col[1] <= -   ( i_image_kernel_buffer[4][3] + i_image_kernel_buffer[3][3] + i_image_kernel_buffer[2][3] + i_image_kernel_buffer[1][3] + i_image_kernel_buffer[0][3] );
-    Gx_col[2] <=     ( i_image_kernel_buffer[4][1] + i_image_kernel_buffer[3][1] + i_image_kernel_buffer[2][1] + i_image_kernel_buffer[1][1] + i_image_kernel_buffer[0][1] );
-    Gx_col[3] <=   ( ( i_image_kernel_buffer[4][0] + i_image_kernel_buffer[3][0] + i_image_kernel_buffer[2][0] + i_image_kernel_buffer[1][0] + i_image_kernel_buffer[0][0] ) << 1 );  
+    Gx_col[0] <= - ( ( i_image_kernel_buffer[0][0] + i_image_kernel_buffer[1][0] + i_image_kernel_buffer[2][0] + i_image_kernel_buffer[3][0] + i_image_kernel_buffer[4][0] ) << 1 );
+    Gx_col[1] <= -   ( i_image_kernel_buffer[0][1] + i_image_kernel_buffer[1][1] + i_image_kernel_buffer[2][1] + i_image_kernel_buffer[3][1] + i_image_kernel_buffer[4][1] );
+    Gx_col[2] <=     ( i_image_kernel_buffer[0][3] + i_image_kernel_buffer[1][3] + i_image_kernel_buffer[2][3] + i_image_kernel_buffer[3][3] + i_image_kernel_buffer[4][3] );
+    Gx_col[3] <=   ( ( i_image_kernel_buffer[0][4] + i_image_kernel_buffer[1][4] + i_image_kernel_buffer[2][4] + i_image_kernel_buffer[3][4] + i_image_kernel_buffer[4][4] ) << 1 ); 
   end 
 end 
 
@@ -60,10 +61,10 @@ always_ff @( posedge i_clk, negedge i_aresetn ) begin
   if ( ~i_aresetn ) begin
     Gy_row <= '{default: 'b0};
   end else begin
-    Gy_row[0] <=   ( ( i_image_kernel_buffer[4][4] + i_image_kernel_buffer[4][3] + i_image_kernel_buffer[4][2] + i_image_kernel_buffer[4][1] + i_image_kernel_buffer[4][0] ) << 1 );
-    Gy_row[1] <=     ( i_image_kernel_buffer[3][4] + i_image_kernel_buffer[3][3] + i_image_kernel_buffer[3][2] + i_image_kernel_buffer[3][1] + i_image_kernel_buffer[3][0] );
-    Gy_row[2] <= -   ( i_image_kernel_buffer[1][4] + i_image_kernel_buffer[1][3] + i_image_kernel_buffer[1][2] + i_image_kernel_buffer[1][1] + i_image_kernel_buffer[1][0] );
-    Gy_row[3] <= - ( ( i_image_kernel_buffer[0][4] + i_image_kernel_buffer[0][3] + i_image_kernel_buffer[0][2] + i_image_kernel_buffer[0][1] + i_image_kernel_buffer[0][0] ) << 1 );  
+    Gy_row[0] <=   ( ( i_image_kernel_buffer[0][0] + i_image_kernel_buffer[0][1] + i_image_kernel_buffer[0][2] + i_image_kernel_buffer[0][3] + i_image_kernel_buffer[0][4] ) << 1 );
+    Gy_row[1] <=     ( i_image_kernel_buffer[1][0] + i_image_kernel_buffer[1][1] + i_image_kernel_buffer[1][2] + i_image_kernel_buffer[1][3] + i_image_kernel_buffer[1][4] );
+    Gy_row[2] <= -   ( i_image_kernel_buffer[3][0] + i_image_kernel_buffer[3][1] + i_image_kernel_buffer[3][2] + i_image_kernel_buffer[3][3] + i_image_kernel_buffer[3][4] );
+    Gy_row[3] <= - ( ( i_image_kernel_buffer[4][0] + i_image_kernel_buffer[4][1] + i_image_kernel_buffer[4][2] + i_image_kernel_buffer[4][3] + i_image_kernel_buffer[4][4] ) << 1 );
   end 
 end 
 
@@ -81,7 +82,39 @@ always_ff @( posedge i_clk, negedge i_aresetn ) begin
     Gx <= Gx_col[0] + Gx_col[1] + Gx_col[2] + Gx_col[3];
     Gy <= Gy_row[0] + Gy_row[1] + Gy_row[2] + Gy_row[3];
   end 
-end 
+end
+
+assign o_Gx = Gx;
+assign o_Gy = Gy;
+
+
+//delay sof and valid to sync with next module (delay = 2 clk ticks, same as delay for Gx Gy processing)
+//
+//SIGNALS
+logic delay_buffer_valid;
+logic delay_buffer_sof;
+
+always_ff @( posedge i_clk, negedge i_aresetn )
+  begin
+   if   ( ~i_aresetn ) begin
+
+     delay_buffer_valid <= 1'b0;
+     delay_buffer_sof   <= 1'b0;
+
+     o_data_valid       <= 1'b0;
+     o_start_of_frame   <= 1'b0;
+
+   end else begin
+
+       delay_buffer_valid <= i_data_valid;
+       delay_buffer_sof   <= i_start_of_frame;
+       
+       o_data_valid       <= delay_buffer_valid;
+       o_start_of_frame   <= delay_buffer_sof;
+   end             	
+  end
+
+
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 endmodule
