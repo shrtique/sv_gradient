@@ -17,8 +17,7 @@ module processing_Gx_Gy #(
   input  logic                  i_data_valid,
   input  logic                  i_start_of_frame,
 
-  output logic [DATA_WIDTH+4:0] o_Gx,
-  output logic [DATA_WIDTH+4:0] o_Gy,
+  output logic [31:0]           o_Gx_Gy_vector,
   output logic                  o_data_valid,
   output logic                  o_start_of_frame	
 
@@ -84,33 +83,42 @@ always_ff @( posedge i_clk, negedge i_aresetn ) begin
   end 
 end
 
-assign o_Gx = Gx;
-assign o_Gy = Gy;
+
+//
+always_ff @( posedge i_clk, negedge i_aresetn ) begin
+  if ( ~i_aresetn ) begin
+    o_Gx_Gy_vector <= '{default: 'b0};
+  end else begin
+    o_Gx_Gy_vector [DATA_WIDTH+4:0]     <= Gx;
+    o_Gx_Gy_vector [DATA_WIDTH+4+16:16] <= Gy;
+  end 
+end
 
 
-//delay sof and valid to sync with next module (delay = 2 clk ticks, same as delay for Gx Gy processing)
+
+//delay sof and valid to sync with next module (delay = 3 clk ticks, same as delay for Gx Gy processing)
 //
 //SIGNALS
-logic delay_buffer_valid;
-logic delay_buffer_sof;
+logic delay_buffer_valid[0:1];
+logic delay_buffer_sof[0:1];
 
 always_ff @( posedge i_clk, negedge i_aresetn )
   begin
    if   ( ~i_aresetn ) begin
 
-     delay_buffer_valid <= 1'b0;
-     delay_buffer_sof   <= 1'b0;
+     delay_buffer_valid <= '{default:'b0};
+     delay_buffer_sof   <= '{default:'b0};
 
      o_data_valid       <= 1'b0;
      o_start_of_frame   <= 1'b0;
 
    end else begin
 
-       delay_buffer_valid <= i_data_valid;
-       delay_buffer_sof   <= i_start_of_frame;
+       delay_buffer_valid <= {i_data_valid, delay_buffer_valid[0]};
+       delay_buffer_sof   <= {i_start_of_frame, delay_buffer_sof[0]};
        
-       o_data_valid       <= delay_buffer_valid;
-       o_start_of_frame   <= delay_buffer_sof;
+       o_data_valid       <= delay_buffer_valid[1];
+       o_start_of_frame   <= delay_buffer_sof[1];
    end             	
   end
 

@@ -5,7 +5,7 @@
 
 module M_AXIS_module #(
 
-  parameter DATA_WIDTH  = 8,
+  parameter DATA_WIDTH  = 32,
   parameter IMG_WIDTH   = 10,
   parameter IMG_HEIGHT  = 10,
   parameter KERNEL_SIZE = 5
