@@ -21,7 +21,7 @@
 
 
 module tb_savefile_axis_data#(
-  parameter N      =  8,
+  parameter N      =  32,
   parameter height =  355,
   parameter width  =  355
 
@@ -148,13 +148,13 @@ always_ff @( posedge i_sys_clk, negedge i_sys_aresetn )
 
       wait ( end_of_frame );
 
-  	  fileID = $fopen("./test_jopa","w");
+  	  fileID = $fopen("./Gx_test","w");
             
       for ( int i = 0; i < height; i++ ) begin
 
         for ( int j = 0; j < width; j++ ) begin
 
-          $fwrite ( fileID, "%d ", image_array[i][j] ); //8bit data
+          $fwrite ( fileID, "%d ", $signed( image_array[i][j][15:0] ) ); //16bit data
         end	
 
         $fwrite ( fileID, "\n" );
@@ -162,8 +162,26 @@ always_ff @( posedge i_sys_clk, negedge i_sys_aresetn )
       end	
 
       $fclose(fileID); 
+
+
       
-      //$finish;
+      fileID = $fopen("./Gy_test","w");
+            
+      for ( int i = 0; i < height; i++ ) begin
+
+        for ( int j = 0; j < width; j++ ) begin
+
+          $fwrite ( fileID, "%d ", $signed( image_array[i][j][31:16] ) ); //16bit data
+        end 
+
+        $fwrite ( fileID, "\n" );
+
+      end 
+
+      $fclose(fileID); 
+      
+      
+      $finish;
     
 
     end   

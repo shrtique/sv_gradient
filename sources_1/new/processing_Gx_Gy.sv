@@ -89,8 +89,8 @@ always_ff @( posedge i_clk, negedge i_aresetn ) begin
   if ( ~i_aresetn ) begin
     o_Gx_Gy_vector <= '{default: 'b0};
   end else begin
-    o_Gx_Gy_vector [DATA_WIDTH+4:0]     <= Gx;
-    o_Gx_Gy_vector [DATA_WIDTH+4+16:16] <= Gy;
+    o_Gx_Gy_vector [15:0]  <= Gx;
+    o_Gx_Gy_vector [31:16] <= Gy;
   end 
 end
 
