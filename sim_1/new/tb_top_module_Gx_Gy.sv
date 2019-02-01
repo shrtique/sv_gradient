@@ -68,8 +68,8 @@ logic                  tlast_gxgy;
 top_module_Gx_Gy #(
 
   .DATA_WIDTH    ( DATA_WIDTH  ),
-  .IMG_WIDTH     ( WIDTH       ),
-  .IMG_HEIGHT    ( HEIGHT      ),
+  //.IMG_WIDTH     ( WIDTH       ),
+  //.IMG_HEIGHT    ( HEIGHT      ),
   .KERNEL_SIZE   ( KERNEL_SIZE )
 
 ) UUT (
@@ -77,16 +77,19 @@ top_module_Gx_Gy #(
   .i_clk         ( clk           ),
   .i_aresetn     ( aresetn       ),
 
+  .WIDTH         ( WIDTH         ),
+  .HEIGHT        ( HEIGHT        ),
+
   .s_axis_tdata  ( tdata         ),
   .s_axis_tvalid ( tvalid        ),
   .s_axis_tuser  ( tuser         ),
   .s_axis_tlast  ( tlast         ),
   .s_axis_tready (               ),
 
-  .m_axis_tdata  ( tdata_gxgy  ),
-  .m_axis_tvalid ( tvalid_gxgy ),
-  .m_axis_tuser  ( tuser_gxgy  ),
-  .m_axis_tlast  ( tlast_gxgy  )
+  .m_axis_tdata  ( tdata_gxgy    ),
+  .m_axis_tvalid ( tvalid_gxgy   ),
+  .m_axis_tuser  ( tuser_gxgy    ),
+  .m_axis_tlast  ( tlast_gxgy    )
 
 );
 //

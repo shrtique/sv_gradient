@@ -6,13 +6,16 @@
 module top_module_Gx_Gy #(
 
   parameter DATA_WIDTH  = 8,
-  parameter IMG_WIDTH   = 4096,
-  parameter IMG_HEIGHT  = 3072,
+  //parameter IMG_WIDTH   = 4096,
+  //parameter IMG_HEIGHT  = 3072,
   parameter KERNEL_SIZE = 5	
 )(
 
   input  logic                    i_clk,
   input  logic                    i_aresetn,
+
+  input  logic [12:0]             WIDTH,
+  input  logic [12:0]             HEIGHT,
 
   input  logic [DATA_WIDTH-1:0]   s_axis_tdata,
   input  logic                    s_axis_tvalid,
@@ -40,6 +43,15 @@ end
 //
 //
 
+// ASSIGNES
+//parameters signals
+logic [12:0] img_width;
+logic [12:0] img_height;
+
+assign img_width  = WIDTH;
+assign img_height = HEIGHT;
+
+
 
 ////INST////
 
@@ -53,13 +65,15 @@ logic                  sof_from_receiver;
 S_AXIS_module #(
 
   .DATA_WIDTH  ( DATA_WIDTH  ),
-  .KERNEL_SIZE ( KERNEL_SIZE ),
-  .IMAGE_WIDTH ( IMG_WIDTH   )
+  //.IMAGE_WIDTH ( IMG_WIDTH   ),
+  .KERNEL_SIZE ( KERNEL_SIZE )
 
 ) data_receiver (
 
   .i_clk                 ( i_clk                             ),
   .i_aresetn             ( i_aresetn                         ),
+
+  .IMAGE_WIDTH           ( img_width                         ),
 
   .s_axis_tdata          ( s_axis_tdata                      ),
   .s_axis_tvalid         ( s_axis_tvalid                     ),
@@ -108,13 +122,16 @@ processing_Gx_Gy #(
 M_AXIS_module #(
 
   .DATA_WIDTH  ( 32          ),
-  .IMG_WIDTH   ( IMG_WIDTH   ),
-  .IMG_HEIGHT  ( IMG_HEIGHT  ),
+  //.IMG_WIDTH   ( IMG_WIDTH   ),
+  //.IMG_HEIGHT  ( IMG_HEIGHT  ),
   .KERNEL_SIZE ( KERNEL_SIZE )
 
 ) data_transmitter (	
   .i_clk              ( i_clk                      ),
   .i_aresetn          ( i_aresetn                  ),
+
+  .IMG_WIDTH          ( img_width                  ),
+  .IMG_HEIGHT         ( img_height                 ),
 
   .i_pixel            ( data_from_processing       ),
   .i_pixel_valid      ( data_valid_from_processing ),
